@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediCare Pro — Smart Healthcare Management</title>
+  <meta name="description" content="AI-powered healthcare management system for patients, doctors, labs, and admins. Book appointments, check symptoms, and manage your health — all in one place." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & Base ────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --clr-bg:        #040d1a;
+      --clr-surface:   #071428;
+      --clr-card:      #0b1f3a;
+      --clr-border:    rgba(99,179,237,0.15);
+      --clr-primary:   #3b82f6;
+      --clr-accent:    #06b6d4;
+      --clr-green:     #10b981;
+      --clr-purple:    #8b5cf6;
+      --clr-pink:      #ec4899;
+      --clr-text:      #e2e8f0;
+      --clr-muted:     #94a3b8;
+      --radius-lg:     1.25rem;
+      --radius-xl:     1.75rem;
+      --shadow-glow:   0 0 40px rgba(59,130,246,0.18);
+      --transition:    0.3s ease;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--clr-bg);
+      color: var(--clr-text);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    /* ─── Animated Background ─────────────────────────────── */
+    .bg-mesh {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .bg-mesh::before {
+      content: '';
+      position: absolute;
+      width: 900px; height: 900px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%);
+      top: -200px; left: -200px;
+      animation: blobMove1 18s ease-in-out infinite alternate;
+    }
+    .bg-mesh::after {
+      content: '';
+      position: absolute;
+      width: 700px; height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(6,182,212,0.10) 0%, transparent 70%);
+      bottom: -150px; right: -150px;
+      animation: blobMove2 22s ease-in-out infinite alternate;
+    }
+    @keyframes blobMove1 {
+      0%   { transform: translate(0, 0) scale(1); }
+      50%  { transform: translate(80px, 60px) scale(1.1); }
+      100% { transform: translate(-40px, 100px) scale(0.95); }
+    }
+    @keyframes blobMove2 {
+      0%   { transform: translate(0, 0) scale(1); }
+      50%  { transform: translate(-60px, -80px) scale(1.12); }
+      100% { transform: translate(50px, -30px) scale(0.9); }
+    }
+
+    .blob-purple {
+      position: fixed;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%);
+      top: 40%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: blobMove1 25s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── Grid Overlay ────────────────────────────────────── */
+    .grid-lines {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(99,179,237,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,179,237,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* ─── Layout Helpers ──────────────────────────────────── */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    section { position: relative; z-index: 1; }
+
+    /* ─── Navbar ──────────────────────────────────────────── */
+    .navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 1rem 0;
+      transition: background var(--transition), backdrop-filter var(--transition);
+    }
+    .navbar.scrolled {
+      background: rgba(4,13,26,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--clr-border);
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1.3rem;
+    }
+    .nav-logo .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--clr-muted);
+      transition: color var(--transition);
+    }
+    .nav-links a:hover { color: var(--clr-text); }
+    .nav-cta {
+      background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
+      color: #fff !important;
+      padding: 0.5rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 600 !important;
+      transition: opacity var(--transition), transform var(--transition) !important;
+    }
+    .nav-cta:hover { opacity: 0.9; transform: translateY(-1px); }
+    .nav-toggle {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .nav-toggle span {
+      display: block;
+      width: 24px; height: 2px;
+      background: var(--clr-text);
+      border-radius: 2px;
+      transition: var(--transition);
+    }
+
+    /* ─── Hero ────────────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 7rem 0 5rem;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(59,130,246,0.12);
+      border: 1px solid rgba(59,130,246,0.3);
+      color: var(--clr-accent);
+      padding: 0.4rem 1rem;
+      border-radius: 100px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 1.8rem;
+      animation: fadeInUp 0.6s ease both;
+    }
+    .hero-badge .pulse {
+      width: 8px; height: 8px;
+      background: var(--clr-green);
+      border-radius: 50%;
+      animation: pulseGlow 1.8s ease-in-out infinite;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
+      50%       { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+    }
+    .hero h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.6rem, 6vw, 5rem);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+      animation: fadeInUp 0.6s 0.1s ease both;
+    }
+    .hero h1 .gradient-text {
+      background: linear-gradient(135deg, var(--clr-primary) 0%, var(--clr-accent) 50%, var(--clr-green) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: var(--clr-muted);
+      max-width: 620px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.7;
+      animation: fadeInUp 0.6s 0.2s ease both;
+    }
+    .hero-cta {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeInUp 0.6s 0.3s ease both;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
+      color: #fff;
+      padding: 0.85rem 2rem;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      transition: transform var(--transition), box-shadow var(--transition);
+      box-shadow: 0 0 30px rgba(59,130,246,0.4);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 50px rgba(59,130,246,0.55);
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: transparent;
+      border: 1px solid var(--clr-border);
+      color: var(--clr-text);
+      padding: 0.85rem 2rem;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: border-color var(--transition), background var(--transition), transform var(--transition);
+    }
+    .btn-secondary:hover {
+      border-color: rgba(99,179,237,0.5);
+      background: rgba(59,130,246,0.06);
+      transform: translateY(-2px);
+    }
+
+    /* Hero visual dashboard mock */
+    .hero-visual {
+      margin-top: 4.5rem;
+      position: relative;
+      animation: fadeInUp 0.8s 0.4s ease both;
+    }
+    .hero-visual .dashboard-mock {
+      background: var(--clr-card);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-xl);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-glow), 0 40px 80px rgba(0,0,0,0.5);
+      max-width: 860px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+    .dashboard-mock::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--clr-primary), var(--clr-accent), var(--clr-green));
+    }
+    .mock-topbar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.2rem;
+    }
+    .mock-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .mock-dot.red   { background: #f87171; }
+    .mock-dot.yellow{ background: #fbbf24; }
+    .mock-dot.green { background: #34d399; }
+    .mock-url {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border-radius: 6px;
+      height: 26px;
+      margin-left: 0.5rem;
+      display: flex;
+      align-items: center;
+      padding: 0 0.8rem;
+      font-size: 0.72rem;
+      color: var(--clr-muted);
+    }
+    .mock-grid {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 1rem;
+    }
+    .mock-sidebar {
+      background: rgba(255,255,255,0.03);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .mock-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.7rem;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      color: var(--clr-muted);
+      transition: background var(--transition);
+    }
+    .mock-nav-item.active {
+      background: rgba(59,130,246,0.15);
+      color: var(--clr-primary);
+    }
+    .mock-nav-item .icon { font-size: 1rem; }
+    .mock-content { display: flex; flex-direction: column; gap: 1rem; }
+    .mock-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.7rem;
+    }
+    .mock-stat-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      padding: 0.8rem;
+      text-align: left;
+    }
+    .mock-stat-card .label { font-size: 0.68rem; color: var(--clr-muted); margin-bottom: 0.3rem; }
+    .mock-stat-card .value { font-size: 1.3rem; font-weight: 700; }
+    .mock-stat-card .value.blue    { color: var(--clr-primary); }
+    .mock-stat-card .value.green   { color: var(--clr-green); }
+    .mock-stat-card .value.purple  { color: var(--clr-purple); }
+    .mock-chart {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      flex: 1;
+    }
+    .mock-chart-label { font-size: 0.72rem; color: var(--clr-muted); margin-bottom: 0.7rem; }
+    .bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 5px;
+      height: 70px;
+    }
+    .bar {
+      flex: 1;
+      background: linear-gradient(to top, var(--clr-primary), var(--clr-accent));
+      border-radius: 4px 4px 0 0;
+      opacity: 0.7;
+      transition: opacity var(--transition);
+    }
+    .bar:hover { opacity: 1; }
+
+    /* Floating cards */
+    .float-card {
+      position: absolute;
+      background: var(--clr-card);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      padding: 0.8rem 1rem;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      white-space: nowrap;
+      animation: floatCard 4s ease-in-out infinite alternate;
+    }
+    .float-card.left  { left: -90px; top: 30%; animation-delay: 0s; }
+    .float-card.right { right: -90px; top: 55%; animation-delay: 1s; }
+    @keyframes floatCard {
+      0%   { transform: translateY(0); }
+      100% { transform: translateY(-12px); }
+    }
+    .float-card .fc-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+    .fc-icon.blue   { background: rgba(59,130,246,0.2); }
+    .fc-icon.green  { background: rgba(16,185,129,0.2); }
+    .float-card .fc-text .fc-title { font-weight: 600; font-size: 0.78rem; }
+    .float-card .fc-text .fc-sub   { color: var(--clr-muted); font-size: 0.7rem; }
+
+    /* ─── Scroll indicator ────────────────────────────────── */
+    .scroll-hint {
+      margin-top: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--clr-muted);
+      font-size: 0.78rem;
+      animation: fadeIn 1s 1.2s ease both;
+    }
+    .scroll-hint .mouse {
+      width: 22px; height: 34px;
+      border: 2px solid var(--clr-muted);
+      border-radius: 20px;
+      display: flex;
+      justify-content: center;
+      padding-top: 5px;
+    }
+    .scroll-hint .mouse::before {
+      content: '';
+      width: 3px; height: 7px;
+      background: var(--clr-muted);
+      border-radius: 3px;
+      animation: scrollWheel 1.6s ease-in-out infinite;
+    }
+    @keyframes scrollWheel {
+      0%   { opacity: 1; transform: translateY(0); }
+      80%  { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 0; transform: translateY(10px); }
+    }
+
+    /* ─── Section Shared Styles ───────────────────────────── */
+    .section-label {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--clr-accent);
+      margin-bottom: 0.8rem;
+    }
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+    .section-sub {
+      font-size: 1.05rem;
+      color: var(--clr-muted);
+      max-width: 560px;
+      line-height: 1.7;
+    }
+    .section-header { margin-bottom: 3.5rem; }
+    .section-header.center { text-align: center; }
+    .section-header.center .section-sub { margin: 0 auto; }
+
+    /* ─── Stats Row ───────────────────────────────────────── */
+    .stats-section { padding: 3rem 0; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+    .stat-item {
+      text-align: center;
+      padding: 2rem 1rem;
+      background: var(--clr-card);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      position: relative;
+      overflow: hidden;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .stat-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    }
+    .stat-item::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--clr-primary), var(--clr-accent));
+      transform: scaleX(0);
+      transition: transform var(--transition);
+    }
+    .stat-item:hover::after { transform: scaleX(1); }
+    .stat-number {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label { color: var(--clr-muted); font-size: 0.88rem; margin-top: 0.3rem; }
+
+    /* ─── Features Section ────────────────────────────────── */
+    .features-section { padding: 6rem 0; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .feature-card {
+      background: var(--clr-card);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+      transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at top left, rgba(59,130,246,0.07), transparent 60%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.45);
+      border-color: rgba(99,179,237,0.3);
+    }
+    .feature-card.accent-green::before {
+      background: radial-gradient(circle at top left, rgba(16,185,129,0.08), transparent 60%);
+    }
+    .feature-card.accent-purple::before {
+      background: radial-gradient(circle at top left, rgba(139,92,246,0.08), transparent 60%);
+    }
+    .feature-card.accent-pink::before {
+      background: radial-gradient(circle at top left, rgba(236,72,153,0.08), transparent 60%);
+    }
+    .feature-card.accent-cyan::before {
+      background: radial-gradient(circle at top left, rgba(6,182,212,0.08), transparent 60%);
+    }
+    .feature-card.accent-orange::before {
+      background: radial-gradient(circle at top left, rgba(249,115,22,0.08), transparent 60%);
+    }
+    .feature-icon {
+      width: 54px; height: 54px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1.2rem;
+    }
+    .fi-blue   { background: rgba(59,130,246,0.15); }
+    .fi-green  { background: rgba(16,185,129,0.15); }
+    .fi-purple { background: rgba(139,92,246,0.15); }
+    .fi-pink   { background: rgba(236,72,153,0.15); }
+    .fi-cyan   { background: rgba(6,182,212,0.15); }
+    .fi-orange { background: rgba(249,115,22,0.15); }
+    .feature-card h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+    }
+    .feature-card p { font-size: 0.9rem; color: var(--clr-muted); line-height: 1.65; }
+    .feature-tag {
+      display: inline-block;
+      margin-top: 1rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 100px;
+      background: rgba(59,130,246,0.1);
+      color: var(--clr-primary);
+      border: 1px solid rgba(59,130,246,0.2);
+    }
+    .feature-tag.green  { background: rgba(16,185,129,0.1);  color: var(--clr-green);  border-color: rgba(16,185,129,0.2); }
+    .feature-tag.purple { background: rgba(139,92,246,0.1);  color: var(--clr-purple); border-color: rgba(139,92,246,0.2); }
+    .feature-tag.pink   { background: rgba(236,72,153,0.1);  color: var(--clr-pink);   border-color: rgba(236,72,153,0.2); }
+    .feature-tag.cyan   { background: rgba(6,182,212,0.1);   color: var(--clr-accent); border-color: rgba(6,182,212,0.2); }
+    .feature-tag.orange { background: rgba(249,115,22,0.1);  color: #fb923c;           border-color: rgba(249,115,22,0.2); }
+
+    /* Featured wide card */
+    .feature-card.wide {
+      grid-column: span 2;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: center;
+    }
+    .feature-card.wide .visual {
+      background: rgba(255,255,255,0.03);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+    .symptom-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(59,130,246,0.1);
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 100px;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.78rem;
+      color: var(--clr-primary);
+      width: fit-content;
+    }
+    .symptom-tag.yellow { background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.2); color: #fbbf24; }
+    .symptom-tag.red    { background: rgba(239,68,68,0.1);  border-color: rgba(239,68,68,0.2);  color: #f87171; }
+    .ai-response {
+      background: rgba(59,130,246,0.08);
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      font-size: 0.8rem;
+      color: var(--clr-muted);
+      margin-top: 0.5rem;
+      line-height: 1.6;
+    }
+    .ai-response strong { color: var(--clr-primary); }
+
+    /* ─── How It Works ────────────────────────────────────── */
+    .how-section { padding: 6rem 0; }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      position: relative;
+    }
+    .steps-grid::before {
+      content: '';
+      position: absolute;
+      top: 36px;
+      left: 12%;
+      right: 12%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--clr-border), var(--clr-border), transparent);
+      z-index: 0;
+    }
+    .step-card {
+      text-align: center;
+      padding: 2rem 1.2rem;
+      position: relative;
+      z-index: 1;
+    }
+    .step-num {
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      background: var(--clr-card);
+      border: 2px solid var(--clr-border);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.2rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--clr-primary);
+      position: relative;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .step-card:hover .step-num {
+      border-color: var(--clr-primary);
+      box-shadow: 0 0 20px rgba(59,130,246,0.3);
+    }
+    .step-card h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .step-card p { font-size: 0.87rem; color: var(--clr-muted); line-height: 1.6; }
+
+    /* ─── Dashboards Section ──────────────────────────────── */
+    .dashboards-section { padding: 6rem 0; }
+    .dashboard-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2.5rem;
+      background: var(--clr-card);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      padding: 0.4rem;
+      width: fit-content;
+    }
+    .dash-tab {
+      padding: 0.55rem 1.2rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--clr-muted);
+      transition: all var(--transition);
+      border: none;
+      background: transparent;
+    }
+    .dash-tab.active {
+      background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
+      color: #fff;
+    }
+    .dash-tab:hover:not(.active) { color: var(--clr-text); }
+
+    .dashboard-preview {
+      background: var(--clr-card);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+      display: none;
+    }
+    .dashboard-preview.active { display: block; }
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+    .dash-header h3 { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; }
+    .dash-badge {
+      background: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.3);
+      color: var(--clr-green);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.2rem 0.7rem;
+      border-radius: 100px;
+    }
+    .dash-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .dash-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      padding: 1.2rem;
+    }
+    .dash-card .dc-label { font-size: 0.72rem; color: var(--clr-muted); margin-bottom: 0.4rem; }
+    .dash-card .dc-val   { font-size: 1.6rem; font-weight: 800; font-family: 'Space Grotesk', sans-serif; }
+    .dash-card .dc-trend {
+      font-size: 0.72rem;
+      margin-top: 0.3rem;
+      display: flex; align-items: center; gap: 0.2rem;
+    }
+    .dc-trend.up   { color: var(--clr-green); }
+    .dc-trend.down { color: #f87171; }
+    .dash-table {
+      background: rgba(255,255,255,0.02);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .dt-row {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1fr 1fr;
+      padding: 0.8rem 1rem;
+      font-size: 0.83rem;
+      border-bottom: 1px solid var(--clr-border);
+      align-items: center;
+    }
+    .dt-row.header { color: var(--clr-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .dt-row:last-child { border-bottom: none; }
+    .status-pill {
+      display: inline-block;
+      padding: 0.15rem 0.6rem;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .sp-confirmed { background: rgba(16,185,129,0.15); color: var(--clr-green); }
+    .sp-pending   { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .sp-cancelled { background: rgba(239,68,68,0.15);  color: #f87171; }
+
+    /* ─── Testimonials ────────────────────────────────────── */
+    .testimonials-section { padding: 6rem 0; }
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .testimonial-card {
+      background: var(--clr-card);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+      transition: transform var(--transition), box-shadow var(--transition);
+      position: relative;
+    }
+    .testimonial-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    }
+    .testimonial-card::before {
+      content: '"';
+      position: absolute;
+      top: 1rem; right: 1.5rem;
+      font-size: 5rem;
+      color: rgba(59,130,246,0.1);
+      font-family: Georgia, serif;
+      line-height: 1;
+    }
+    .stars { color: #fbbf24; font-size: 0.85rem; margin-bottom: 0.8rem; letter-spacing: 0.05em; }
+    .testimonial-card p { font-size: 0.92rem; color: var(--clr-muted); line-height: 1.7; margin-bottom: 1.4rem; }
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    .author-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .av-blue   { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
+    .av-green  { background: linear-gradient(135deg, #10b981, #34d399); }
+    .av-purple { background: linear-gradient(135deg, #8b5cf6, #ec4899); }
+    .author-info .author-name { font-weight: 700; font-size: 0.88rem; }
+    .author-info .author-role { font-size: 0.78rem; color: var(--clr-muted); }
+
+    /* ─── CTA Banner ──────────────────────────────────────── */
+    .cta-section { padding: 6rem 0; }
+    .cta-banner {
+      background: var(--clr-card);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-xl);
+      padding: 4rem 3rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(59,130,246,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-banner h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+    .cta-banner p { color: var(--clr-muted); font-size: 1.05rem; max-width: 520px; margin: 0 auto 2.2rem; }
+    .cta-chips {
+      display: flex;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .cta-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--clr-border);
+      border-radius: 100px;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.8rem;
+      color: var(--clr-muted);
+    }
+    .cta-chip .check { color: var(--clr-green); }
+
+    /* ─── Footer ──────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--clr-border);
+      padding: 3rem 0 1.5rem;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+    }
+    .footer-brand .nav-logo { margin-bottom: 1rem; }
+    .footer-brand p { font-size: 0.85rem; color: var(--clr-muted); line-height: 1.7; max-width: 260px; }
+    .footer-col h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem; }
+    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 0.55rem; }
+    .footer-links a { font-size: 0.83rem; color: var(--clr-muted); transition: color var(--transition); }
+    .footer-links a:hover { color: var(--clr-text); }
+    .footer-bottom {
+      border-top: 1px solid var(--clr-border);
+      padding-top: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--clr-muted);
+    }
+    .social-links { display: flex; gap: 0.8rem; }
+    .social-link {
+      width: 34px; height: 34px;
+      border: 1px solid var(--clr-border);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      transition: border-color var(--transition), background var(--transition);
+    }
+    .social-link:hover { border-color: var(--clr-primary); background: rgba(59,130,246,0.1); }
+
+    /* ─── Animations ──────────────────────────────────────── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── Responsive ──────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .float-card { display: none; }
+      .mock-grid { grid-template-columns: 1fr; }
+      .mock-sidebar { display: none; }
+      .feature-card.wide { grid-column: span 3; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .feature-card.wide { grid-column: span 2; grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: repeat(2, 1fr); }
+      .steps-grid::before { display: none; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .dash-cards { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .nav-toggle { display: flex; }
+      .nav-links.open {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 64px; left: 0; right: 0;
+        background: rgba(4,13,26,0.97);
+        backdrop-filter: blur(20px);
+        padding: 1.5rem;
+        gap: 1rem;
+        border-bottom: 1px solid var(--clr-border);
+        z-index: 99;
+      }
+      .features-grid { grid-template-columns: 1fr; }
+      .feature-card.wide { grid-column: span 1; grid-template-columns: 1fr; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .dashboard-tabs { flex-wrap: wrap; }
+      .dt-row { grid-template-columns: 1fr 1fr; gap: 0.3rem; }
+      .dt-row > *:nth-child(3), .dt-row > *:nth-child(4) { display: none; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+      .cta-banner { padding: 2.5rem 1.5rem; }
+      .mock-stats { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .mock-stats { grid-template-columns: 1fr; }
+      .dash-cards { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background layers -->
+  <div class="bg-mesh" aria-hidden="true"></div>
+  <div class="blob-purple" aria-hidden="true"></div>
+  <div class="grid-lines" aria-hidden="true"></div>
+
+  <!-- ─── Navbar ──────────────────────────────────────────── -->
+  <nav class="navbar" id="navbar">
+    <div class="container">
+      <div class="nav-inner">
+        <a href="#" class="nav-logo">
+          <div class="logo-icon">🏥</div>
+          <span>MediCare<span style="color:var(--clr-accent)">Pro</span></span>
+        </a>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#dashboards">Dashboards</a></li>
+          <li><a href="#testimonials">Testimonials</a></li>
+          <li><a href="#get-started" class="nav-cta">Get Started</a></li>
+        </ul>
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─── Hero ────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">
+        <span class="pulse"></span>
+        Now with AI-Powered Diagnostics
+      </div>
+      <h1>
+        Healthcare Management<br />
+        <span class="gradient-text">Reimagined for the Future</span>
+      </h1>
+      <p>
+        One unified platform connecting patients, doctors, labs, and administrators.
+        AI-driven insights, real-time sync, and seamless scheduling — your health, streamlined.
+      </p>
+      <div class="hero-cta">
+        <a href="#get-started" class="btn-primary">
+          🚀 Get Started Free
+        </a>
+        <a href="#features" class="btn-secondary">
+          ✨ Explore Features
+        </a>
+      </div>
+
+      <!-- Dashboard visual mock -->
+      <div class="hero-visual">
+        <div class="dashboard-mock">
+          <div class="mock-topbar">
+            <span class="mock-dot red"></span>
+            <span class="mock-dot yellow"></span>
+            <span class="mock-dot green"></span>
+            <span class="mock-url">🔒 medicare-pro.app/dashboard</span>
+          </div>
+          <div class="mock-grid">
+            <div class="mock-sidebar">
+              <div class="mock-nav-item active"><span class="icon">📊</span> Dashboard</div>
+              <div class="mock-nav-item"><span class="icon">📅</span> Appointments</div>
+              <div class="mock-nav-item"><span class="icon">🧪</span> Lab Tests</div>
+              <div class="mock-nav-item"><span class="icon">🤖</span> AI Checker</div>
+              <div class="mock-nav-item"><span class="icon">⚖️</span> BMI Tool</div>
+              <div class="mock-nav-item"><span class="icon">💊</span> Prescriptions</div>
+              <div class="mock-nav-item"><span class="icon">⚙️</span> Settings</div>
+            </div>
+            <div class="mock-content">
+              <div class="mock-stats">
+                <div class="mock-stat-card">
+                  <div class="label">Appointments Today</div>
+                  <div class="value blue">12</div>
+                </div>
+                <div class="mock-stat-card">
+                  <div class="label">Lab Tests Pending</div>
+                  <div class="value green">8</div>
+                </div>
+                <div class="mock-stat-card">
+                  <div class="label">Active Patients</div>
+                  <div class="value purple">247</div>
+                </div>
+              </div>
+              <div class="mock-chart">
+                <div class="mock-chart-label">Weekly Appointment Trends</div>
+                <div class="bars">
+                  <div class="bar" style="height:40%"></div>
+                  <div class="bar" style="height:65%"></div>
+                  <div class="bar" style="height:55%"></div>
+                  <div class="bar" style="height:80%"></div>
+                  <div class="bar" style="height:70%"></div>
+                  <div class="bar" style="height:90%"></div>
+                  <div class="bar" style="height:75%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating context cards -->
+        <div class="float-card left">
+          <div class="fc-icon green">🟢</div>
+          <div class="fc-text">
+            <div class="fc-title">Dr. Priya Sharma</div>
+            <div class="fc-sub">Available now · Cardiologist</div>
+          </div>
+        </div>
+        <div class="float-card right">
+          <div class="fc-icon blue">🔬</div>
+          <div class="fc-text">
+            <div class="fc-title">Lab Result Ready</div>
+            <div class="fc-sub">CBC Report · View Now</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scroll-hint">
+        <div class="mouse"></div>
+        <span>Scroll to explore</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Stats ────────────────────────────────────────────── -->
+  <section class="stats-section">
+    <div class="container">
+      <div class="stats-grid reveal">
+        <div class="stat-item">
+          <div class="stat-number" data-target="50000">0</div>
+          <div class="stat-label">Patients Managed</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="1200">0</div>
+          <div class="stat-label">Verified Doctors</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="98">0</div>
+          <div class="stat-label">% Uptime SLA</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="4800">0</div>
+          <div class="stat-label">Daily Appointments</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Features ─────────────────────────────────────────── -->
+  <section class="features-section" id="features">
+    <div class="container">
+      <div class="section-header center reveal">
+        <div class="section-label">Platform Capabilities</div>
+        <h2 class="section-title">Everything You Need to<br /><span style="color:var(--clr-accent)">Deliver Better Care</span></h2>
+        <p class="section-sub">A full ecosystem of healthcare tools — from intelligent diagnostics to seamless scheduling — built for modern medical workflows.</p>
+      </div>
+
+      <div class="features-grid">
+        <!-- Wide AI card -->
+        <div class="feature-card wide reveal">
+          <div>
+            <div class="feature-icon fi-blue">🤖</div>
+            <h3>AI-Powered Symptom Checker</h3>
+            <p>Our intelligent engine analyzes your symptoms and medical history to provide preliminary diagnoses and recommendations. Powered by advanced machine learning trained on clinical datasets.</p>
+            <span class="feature-tag">AI / ML</span>
+          </div>
+          <div class="visual">
+            <div style="font-size:0.72rem; color:var(--clr-muted); margin-bottom:0.5rem;">Patient symptoms entered:</div>
+            <div class="symptom-tag">🤒 Fever (38.2°C)</div>
+            <div class="symptom-tag yellow">🤧 Dry Cough</div>
+            <div class="symptom-tag red">😫 Fatigue</div>
+            <div class="ai-response">
+              <strong>AI Analysis:</strong> Symptoms are consistent with a viral respiratory infection. Recommend consulting a GP within 24–48 hours. Consider: rest, hydration, and over-the-counter antipyretics.
+            </div>
+          </div>
+        </div>
+
+        <!-- BMI Calculator -->
+        <div class="feature-card accent-green reveal">
+          <div class="feature-icon fi-green">⚖️</div>
+          <h3>Smart BMI Calculator</h3>
+          <p>Track your body mass index with personalized health insights, trend analysis, and actionable wellness recommendations.</p>
+          <span class="feature-tag green">Wellness</span>
+        </div>
+
+        <!-- Heart Disease Prediction -->
+        <div class="feature-card accent-pink reveal">
+          <div class="feature-icon fi-pink">❤️</div>
+          <h3>Heart Disease Prediction</h3>
+          <p>ML-powered cardiovascular risk assessment using patient vitals, lifestyle data, and biomarkers to predict risk with high accuracy.</p>
+          <span class="feature-tag pink">Predictive Analytics</span>
+        </div>
+
+        <!-- Appointments -->
+        <div class="feature-card accent-purple reveal">
+          <div class="feature-icon fi-purple">📅</div>
+          <h3>Smart Appointment Booking</h3>
+          <p>Patients book, reschedule, and cancel appointments in seconds. Doctors see real-time availability updates across all devices.</p>
+          <span class="feature-tag purple">Real-time Sync</span>
+        </div>
+
+        <!-- Lab Tests -->
+        <div class="feature-card accent-cyan reveal">
+          <div class="feature-icon fi-cyan">🧪</div>
+          <h3>Lab Test Management</h3>
+          <p>Order tests, track sample status, and receive digital results instantly. Full integration with lab dashboards and doctor portals.</p>
+          <span class="feature-tag cyan">Integrated Labs</span>
+        </div>
+
+        <!-- Multi-role dashboards -->
+        <div class="feature-card accent-orange reveal">
+          <div class="feature-icon fi-orange">📊</div>
+          <h3>Role-Based Dashboards</h3>
+          <p>Tailored views for patients, doctors, lab technicians, and administrators — everyone gets exactly what they need, nothing they don't.</p>
+          <span class="feature-tag orange">4 Roles</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── How It Works ──────────────────────────────────────── -->
+  <section class="how-section" id="how-it-works">
+    <div class="container">
+      <div class="section-header center reveal">
+        <div class="section-label">Process</div>
+        <h2 class="section-title">Up and Running in<br /><span style="color:var(--clr-green)">Four Simple Steps</span></h2>
+        <p class="section-sub">Getting started with MediCare Pro is fast and friction-free.</p>
+      </div>
+      <div class="steps-grid reveal">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <h3>Create Your Account</h3>
+          <p>Sign up as a patient, doctor, lab, or admin. Verification takes under 2 minutes.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <h3>Set Up Your Profile</h3>
+          <p>Enter health history, specializations, or lab capabilities depending on your role.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <h3>Connect & Schedule</h3>
+          <p>Book appointments, order tests, or accept patients — all from a single dashboard.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">4</div>
+          <h3>Monitor & Improve</h3>
+          <p>Track health trends, review AI insights, and improve outcomes over time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Dashboards ────────────────────────────────────────── -->
+  <section class="dashboards-section" id="dashboards">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">Role-Based Access</div>
+        <h2 class="section-title">Designed for Every<br /><span style="color:var(--clr-purple)">Stakeholder</span></h2>
+        <p class="section-sub">Four purpose-built dashboards, each optimized for its user's workflow and responsibilities.</p>
+      </div>
+
+      <div class="dashboard-tabs reveal">
+        <button class="dash-tab active" data-tab="patient">🧑‍⚕️ Patient</button>
+        <button class="dash-tab" data-tab="doctor">👨‍⚕️ Doctor</button>
+        <button class="dash-tab" data-tab="lab">🔬 Lab</button>
+        <button class="dash-tab" data-tab="admin">🛡️ Admin</button>
+      </div>
+
+      <!-- Patient Dashboard -->
+      <div class="dashboard-preview active reveal" id="tab-patient">
+        <div class="dash-header">
+          <h3>Patient Dashboard</h3>
+          <span class="dash-badge">● Live</span>
+        </div>
+        <div class="dash-cards">
+          <div class="dash-card">
+            <div class="dc-label">Upcoming Appointments</div>
+            <div class="dc-val" style="color:var(--clr-primary)">3</div>
+            <div class="dc-trend up">↑ 1 this week</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">Lab Results Ready</div>
+            <div class="dc-val" style="color:var(--clr-green)">2</div>
+            <div class="dc-trend up">↑ New today</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">Current BMI</div>
+            <div class="dc-val" style="color:var(--clr-accent)">22.4</div>
+            <div class="dc-trend up">↑ Normal range</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">AI Risk Score</div>
+            <div class="dc-val" style="color:var(--clr-purple)">Low</div>
+            <div class="dc-trend up">↑ Healthy</div>
+          </div>
+        </div>
+        <div class="dash-table">
+          <div class="dt-row header">
+            <span>Doctor / Specialist</span>
+            <span>Date & Time</span>
+            <span>Type</span>
+            <span>Status</span>
+          </div>
+          <div class="dt-row">
+            <span>Dr. Anita Desai · Cardiologist</span>
+            <span>Mar 7, 2026 · 10:00 AM</span>
+            <span>In-Clinic</span>
+            <span><span class="status-pill sp-confirmed">Confirmed</span></span>
+          </div>
+          <div class="dt-row">
+            <span>Dr. Rohan Mehta · Neurologist</span>
+            <span>Mar 12, 2026 · 3:30 PM</span>
+            <span>Video Call</span>
+            <span><span class="status-pill sp-pending">Pending</span></span>
+          </div>
+          <div class="dt-row">
+            <span>Dr. Sneha Kulkarni · GP</span>
+            <span>Feb 28, 2026 · 9:00 AM</span>
+            <span>In-Clinic</span>
+            <span><span class="status-pill sp-cancelled">Cancelled</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Doctor Dashboard -->
+      <div class="dashboard-preview" id="tab-doctor">
+        <div class="dash-header">
+          <h3>Doctor Dashboard</h3>
+          <span class="dash-badge">● Live</span>
+        </div>
+        <div class="dash-cards">
+          <div class="dash-card">
+            <div class="dc-label">Patients Today</div>
+            <div class="dc-val" style="color:var(--clr-primary)">18</div>
+            <div class="dc-trend up">↑ 3 new</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">Pending Reviews</div>
+            <div class="dc-val" style="color:var(--clr-pink)">5</div>
+            <div class="dc-trend down">↓ Action needed</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">Lab Orders</div>
+            <div class="dc-val" style="color:var(--clr-green)">11</div>
+            <div class="dc-trend up">↑ 4 today</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">Rating</div>
+            <div class="dc-val" style="color:var(--clr-accent)">4.9</div>
+            <div class="dc-trend up">↑ ★★★★★</div>
+          </div>
+        </div>
+        <div class="dash-table">
+          <div class="dt-row header">
+            <span>Patient</span>
+            <span>Appointment Time</span>
+            <span>Concern</span>
+            <span>Status</span>
+          </div>
+          <div class="dt-row">
+            <span>Ravi Patil · 34M</span>
+            <span>Today · 09:00 AM</span>
+            <span>Chest Pain</span>
+            <span><span class="status-pill sp-confirmed">Done</span></span>
+          </div>
+          <div class="dt-row">
+            <span>Meena Shah · 52F</span>
+            <span>Today · 11:30 AM</span>
+            <span>Hypertension</span>
+            <span><span class="status-pill sp-pending">Upcoming</span></span>
+          </div>
+          <div class="dt-row">
+            <span>Arun Joshi · 28M</span>
+            <span>Today · 2:00 PM</span>
+            <span>Follow-up</span>
+            <span><span class="status-pill sp-pending">Upcoming</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lab Dashboard -->
+      <div class="dashboard-preview" id="tab-lab">
+        <div class="dash-header">
+          <h3>Lab Dashboard</h3>
+          <span class="dash-badge">● Live</span>
+        </div>
+        <div class="dash-cards">
+          <div class="dash-card">
+            <div class="dc-label">Tests Today</div>
+            <div class="dc-val" style="color:var(--clr-primary)">34</div>
+            <div class="dc-trend up">↑ 12 completed</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">Samples Pending</div>
+            <div class="dc-val" style="color:var(--clr-pink)">9</div>
+            <div class="dc-trend down">↓ Processing</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">Reports Sent</div>
+            <div class="dc-val" style="color:var(--clr-green)">22</div>
+            <div class="dc-trend up">↑ Today</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">TAT (avg)</div>
+            <div class="dc-val" style="color:var(--clr-accent)">4h</div>
+            <div class="dc-trend up">↑ On target</div>
+          </div>
+        </div>
+        <div class="dash-table">
+          <div class="dt-row header">
+            <span>Test Name</span>
+            <span>Patient</span>
+            <span>Ordered By</span>
+            <span>Status</span>
+          </div>
+          <div class="dt-row">
+            <span>Complete Blood Count (CBC)</span>
+            <span>Sunita Rao</span>
+            <span>Dr. Anita Desai</span>
+            <span><span class="status-pill sp-confirmed">Reported</span></span>
+          </div>
+          <div class="dt-row">
+            <span>Lipid Profile</span>
+            <span>Vikas Tiwari</span>
+            <span>Dr. Rohan Mehta</span>
+            <span><span class="status-pill sp-pending">Processing</span></span>
+          </div>
+          <div class="dt-row">
+            <span>HbA1c</span>
+            <span>Deepa Nair</span>
+            <span>Dr. Sneha Kulkarni</span>
+            <span><span class="status-pill sp-pending">Collected</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Dashboard -->
+      <div class="dashboard-preview" id="tab-admin">
+        <div class="dash-header">
+          <h3>Admin Dashboard</h3>
+          <span class="dash-badge">● Live</span>
+        </div>
+        <div class="dash-cards">
+          <div class="dash-card">
+            <div class="dc-label">Total Users</div>
+            <div class="dc-val" style="color:var(--clr-primary)">1,482</div>
+            <div class="dc-trend up">↑ 28 this week</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">Active Doctors</div>
+            <div class="dc-val" style="color:var(--clr-green)">84</div>
+            <div class="dc-trend up">↑ All verified</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">System Uptime</div>
+            <div class="dc-val" style="color:var(--clr-accent)">99.9%</div>
+            <div class="dc-trend up">↑ Healthy</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">Pending Approvals</div>
+            <div class="dc-val" style="color:var(--clr-pink)">7</div>
+            <div class="dc-trend down">↓ Action needed</div>
+          </div>
+        </div>
+        <div class="dash-table">
+          <div class="dt-row header">
+            <span>User / Entity</span>
+            <span>Role</span>
+            <span>Joined</span>
+            <span>Status</span>
+          </div>
+          <div class="dt-row">
+            <span>City Central Hospital Lab</span>
+            <span>Lab Partner</span>
+            <span>Mar 1, 2026</span>
+            <span><span class="status-pill sp-pending">Review</span></span>
+          </div>
+          <div class="dt-row">
+            <span>Dr. Farhan Qureshi</span>
+            <span>Doctor</span>
+            <span>Mar 2, 2026</span>
+            <span><span class="status-pill sp-confirmed">Approved</span></span>
+          </div>
+          <div class="dt-row">
+            <span>Wellness Diagnostics Pvt. Ltd.</span>
+            <span>Lab Partner</span>
+            <span>Mar 3, 2026</span>
+            <span><span class="status-pill sp-pending">Review</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Testimonials ──────────────────────────────────────── -->
+  <section class="testimonials-section" id="testimonials">
+    <div class="container">
+      <div class="section-header center reveal">
+        <div class="section-label">Social Proof</div>
+        <h2 class="section-title">Trusted by Healthcare<br /><span style="color:var(--clr-pink)">Professionals Worldwide</span></h2>
+        <p class="section-sub">Real feedback from the doctors, patients, and administrators who rely on MediCare Pro every day.</p>
+      </div>
+      <div class="testimonials-grid reveal">
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <p>"The AI symptom checker has genuinely improved our triage process. Patients come in better informed, and consultations are far more productive."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar av-blue">AD</div>
+            <div class="author-info">
+              <div class="author-name">Dr. Anita Desai</div>
+              <div class="author-role">Senior Cardiologist · Mumbai</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <p>"Booking appointments used to take 20 minutes on hold. Now it's done in under a minute. The real-time sync means no double-booking ever."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar av-green">RV</div>
+            <div class="author-info">
+              <div class="author-name">Ravi Verma</div>
+              <div class="author-role">Patient · Pune</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <p>"Lab result management is seamless. Reports reach doctors and patients instantly — no paperwork, no delays, no lost samples."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar av-purple">NK</div>
+            <div class="author-info">
+              <div class="author-name">Neha Kulkarni</div>
+              <div class="author-role">Lab Manager · Bangalore</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── CTA ───────────────────────────────────────────────── -->
+  <section class="cta-section" id="get-started">
+    <div class="container">
+      <div class="cta-banner reveal">
+        <div class="section-label">Get Started Today</div>
+        <h2>Ready to Transform<br />Your Healthcare Experience?</h2>
+        <p>Join thousands of healthcare professionals and patients already using MediCare Pro.</p>
+        <div class="cta-chips">
+          <div class="cta-chip"><span class="check">✓</span> Free to get started</div>
+          <div class="cta-chip"><span class="check">✓</span> No credit card required</div>
+          <div class="cta-chip"><span class="check">✓</span> HIPAA compliant</div>
+          <div class="cta-chip"><span class="check">✓</span> 24/7 support</div>
+        </div>
+        <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+          <a href="#" class="btn-primary">🚀 Start for Free</a>
+          <a href="#" class="btn-secondary">📖 Read the Docs</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Footer ────────────────────────────────────────────── -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#" class="nav-logo">
+            <div class="logo-icon">🏥</div>
+            <span>MediCare<span style="color:var(--clr-accent)">Pro</span></span>
+          </a>
+          <p>AI-powered healthcare management platform connecting patients, doctors, labs, and admins in one seamless ecosystem.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Product</h4>
+          <ul class="footer-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#dashboards">Dashboards</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#">Pricing</a></li>
+            <li><a href="#">Changelog</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <ul class="footer-links">
+            <li><a href="#">Patient Portal</a></li>
+            <li><a href="#">Doctor Portal</a></li>
+            <li><a href="#">Lab Portal</a></li>
+            <li><a href="#">Admin Console</a></li>
+            <li><a href="#">API Reference</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul class="footer-links">
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">HIPAA Compliance</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 MediCare Pro. All rights reserved.</span>
+        <div class="social-links">
+          <a class="social-link" href="#" aria-label="GitHub">⬡</a>
+          <a class="social-link" href="#" aria-label="Twitter">𝕏</a>
+          <a class="social-link" href="#" aria-label="LinkedIn">in</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ─── Navbar scroll effect ────────────────────────────────
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 30);
+    });
+
+    // ─── Mobile nav toggle ───────────────────────────────────
+    const navToggle = document.getElementById('navToggle');
+    const navLinks  = document.getElementById('navLinks');
+    navToggle.addEventListener('click', () => {
+      navLinks.classList.toggle('open');
+    });
+    navLinks.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => navLinks.classList.remove('open'));
+    });
+
+    // ─── Dashboard tabs ──────────────────────────────────────
+    document.querySelectorAll('.dash-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.dashboard-preview').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // ─── Scroll reveal ───────────────────────────────────────
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 80);
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // ─── Counter animation ───────────────────────────────────
+    function animateCount(el, target, suffix = '') {
+      const duration = 1800;
+      const start = performance.now();
+      const update = (now) => {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = Math.floor(eased * target);
+        el.textContent = current.toLocaleString() + suffix;
+        if (progress < 1) requestAnimationFrame(update);
+      };
+      requestAnimationFrame(update);
+    }
+
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.querySelectorAll('[data-target]').forEach(el => {
+            const target = parseInt(el.dataset.target, 10);
+            const suffix = el.dataset.target === '98' ? '%' : '+';
+            animateCount(el, target, suffix);
+          });
+          counterObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+
+    document.querySelectorAll('.stats-grid').forEach(el => counterObserver.observe(el));
+  </script>
+</body>
+</html>
